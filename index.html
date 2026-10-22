@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#10111b">
+<title>ChatRasm Studio</title>
+<style>
+:root{--bg:#10111b;--panel:#191b2a;--line:#30334b;--blue:#6575ff;--purple:#995cff;--text:#f5f5ff;--muted:#a7aac4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Arial,sans-serif}
+header{padding:19px 16px;background:linear-gradient(120deg,#20234a,#241936);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--purple));font-size:23px}
+h1{font-size:20px;margin:0}
+header p{margin:4px 0 0;color:#c1c4e1;font-size:12px}
+main{max-width:720px;margin:auto;padding:15px 13px 100px}
+.notice{padding:12px;border:1px solid #46416b;border-radius:13px;background:#201d37;color:#d9d5ff;font-size:12px;line-height:1.6;margin-bottom:14px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px}
+button,.filebtn{font:inherit;font-size:13px;font-weight:650;border:0;border-radius:11px;padding:12px;background:linear-gradient(135deg,var(--blue),var(--purple));color:white;cursor:pointer;text-align:center}
+button:active,.filebtn:active{opacity:.8}
+button.secondary,.filebtn.secondary{background:#292c40;border:1px solid #41445d}
+button:disabled{opacity:.4}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+label{display:block;font-size:12px;color:var(--muted);margin:11px 0 6px}
+input,textarea,select{font:inherit;font-size:15px;width:100%;padding:11px;border:1px solid #3c4058;border-radius:10px;background:#111321;color:white;min-width:0}
+input[type=color]{height:43px;padding:4px}
+input[type=range]{padding:0;accent-color:var(--blue)}
+input[type=file]{display:none}
+.workspace{display:flex;justify-content:center;align-items:center;min-height:190px;background:#0b0c13;border:1px dashed #393d57;border-radius:13px;padding:10px;overflow:hidden}
+#stage{position:relative;display:inline-block;max-width:100%;line-height:0;touch-action:pan-y}
+#photo{display:block;max-width:100%;max-height:55vh;width:auto;height:auto;object-fit:contain}
+#overlay{position:absolute;inset:0;line-height:normal;pointer-events:none}
+.textbox{position:absolute;min-width:24px;max-width:90%;padding:4px 6px;border:1px dashed #ffffff70;border-radius:5px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.25;touch-action:none;pointer-events:auto;cursor:move;user-select:none}
+.textbox.selected{outline:2px solid #9b9eff;background-color:#0005}
+.empty{text-align:center;color:var(--muted);font-size:13px;line-height:1.7;padding:30px 12px}
+.small{font-size:11px;color:var(--muted);line-height:1.6;margin-top:9px}
+#editor{display:none}
+#chatPanel{display:none}
+.chat{position:relative;background:#171927;border:1px solid #363951;border-radius:15px;padding:14px;min-height:260px;overflow:hidden}
+.chathead{display:flex;align-items:center;gap:10px;border-bottom:1px solid #363951;padding-bottom:12px;margin-bottom:15px}
+.avatar{width:42px;height:42px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#6978ff,#a25aff);font-weight:bold}
+#chatName{font-size:14px}
+.online{font-size:11px;color:#8edcaf;margin-top:3px}
+.date{text-align:center;color:#a5a8c1;font-size:10px;margin:12px}
+.bubble{position:relative;display:table;max-width:87%;padding:10px 11px;margin:9px 0;border-radius:13px;background:#303448;line-height:1.45;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;cursor:pointer;border:1px solid transparent}
+.bubble.out{margin-left:auto;background:#5145a5}
+.bubble.selected{border-color:#ffe17b}
+.meta{text-align:right;font-size:9px;color:#d4d5e8;margin-top:5px}
+.demotag{position:absolute;top:8px;right:8px;font-size:9px;letter-spacing:1px;background:#090a12cc;border:1px solid #8588a6;color:#fff;padding:5px 7px;border-radius:6px;z-index:2}
+.messageList{display:grid;gap:7px}
+.messageItem{padding:10px;border:1px solid var(--line);border-radius:10px;background:#141624;font-size:12px;display:flex;gap:8px;align-items:center}
+.messageItem span{flex:1;overflow-wrap:anywhere}
+.messageItem button{padding:8px;flex:0 0 auto}
+footer{position:fixed;bottom:0;left:0;right:0;background:#151624ed;backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px;display:flex;gap:8px;justify-content:center;z-index:5}
+footer button{width:50%;max-width:340px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand">
+  <div class="logo">✦</div>
+  <div><h1>ChatRasm Studio</h1><p>Surat va chat dizayni — o‘zbekcha</p></div>
+ </div>
+</header>
+
+<main>
+<div class="notice">
+ ✨ <b>Ijod qilishni boshlang!</b><br>
+ Surat ustiga o‘z matningizni qo‘shing yoki DEMO belgili xayoliy chat yarating. Rasmlar ushbu prototipda serverga yuklanmaydi.
+</div>
+
+<div class="tabs">
+ <button id="photoTab" onclick="switchTab('photo')">🖼 Surat muharriri</button>
+ <button id="chatTab" class="secondary" onclick="switchTab('chat')">💬 Chat yaratish</button>
+</div>
+
+<section id="photoPanel">
+ <div class="panel">
+  <h2>1. Surat tanlang</h2>
+  <div class="row">
+   <label class="filebtn" for="fileInput">＋ Galereyadan tanlash</label>
+   <button class="secondary" onclick="resetPhoto()">Tozalash</button>
+  </div>
+  <input id="fileInput" type="file" accept="image/*">
+  <p class="small">JPG, PNG va telefon qo‘llaydigan suratlar. Juda katta suratlar telefon xotirasiga og‘irlik qilishi mumkin.</p>
+ </div>
+
+ <div class="panel">
+  <h2>2. Ish maydoni</h2>
+  <div class="workspace">
+   <div id="empty" class="empty">🖼️<br>Avval surat tanlang<br>Keyin unga matn qo‘shishingiz mumkin.</div>
+   <div id="stage" class="hidden">
+    <img id="photo" alt="Tanlangan surat">
+    <div id="overlay"></div>
+   </div>
+  </div>
+  <div class="row" style="margin-top:12px">
+   <button onclick="addText()">＋ Matn qo‘shish</button>
+   <button class="secondary" onclick="deleteText()">🗑 Matnni o‘chirish</button>
+  </div>
+  <p class="small">Matnni barmog‘ingiz bilan bosib ushlab, surat bo‘ylab ko‘chiring.</p>
+ </div>
+
+ <div class="panel" id="editor">
+  <h2>3. Matn sozlamalari</h2>
+  <label>Matn</label>
+  <textarea id="textValue" rows="2" placeholder="Matningizni yozing"></textarea>
+  <div class="row">
+   <div><label>O‘lcham</label><input id="fontSize" type="range" min="10" max="64" value="24"></div>
+   <div><label>Matn rangi</label><input id="fontColor" type="color" value="#ffffff"></div>
+  </div>
+  <label>Shakl / shrift</label>
+  <select id="fontFamily">
+   <option value="Arial">Arial</option>
+   <option value="Georgia">Georgia</option>
+   <option value="Verdana">Verdana</option>
+   <option value="monospace">Monospace</option>
+   <option value="serif">Serif</option>
+  </select>
+  <label>Tekislash</label>
+  <select id="textAlign">
+   <option value="left">Chapga</option>
+   <option value="center">Markazga</option>
+   <option value="right">O‘ngga</option>
+  </select>
+  <div class="row">
+   <button class="secondary" onclick="toggleOutline()">Kontur yoqish/o‘chirish</button>
+   <button class="secondary" onclick="toggleShadow()">Soya yoqish/o‘chirish</button>
+  </div>
+  <p class="small">Tanlangan matn sozlamalari shu matnga qo‘llanadi.</p>
+ </div>
+
+ <div class="panel">
+  <h2>4. Tayyor rasm</h2>
+  <button style="width:100%" onclick="exportPhoto()">⬇ PNG sifatida saqlash</button>
+  <p class="small">Saqlash brauzer orqali amalga oshadi. Telefon ruxsat so‘rashi yoki rasmni yuklab olishlar papkasiga joylashi mumkin.</p>
+ </div>
+</section>
+
+<section id="chatPanel">
+ <div class="panel">
+  <h2>1. Chat ko‘rinishi</h2>
+  <label>Kontakt ismi</label>
+  <input id="contactName" value="Aziza" maxlength="50">
+  <label>Avatar harfi</label>
+  <input id="avatarText" value="A" maxlength="3">
+  <label>Chat foni</label>
+  <input id="chatColor" type="color" value="#171927">
+  <label>Sana yorlig‘i</label>
+  <input id="dateText" value="BUGUN" maxlength="50">
+ </div>
+
+ <div class="panel">
+  <h2>2. Xabarlar</h2>
+  <div class="row">
+   <button onclick="addMessage('in')">＋ Kiruvchi</button>
+   <button onclick="addMessage('out')">＋ Chiquvchi</button>
+  </div>
+  <div id="messageList" class="messageList" style="margin-top:12px"></div>
+  <div id="messageEditor" class="hidden">
+   <label>Xabar matni</label>
+   <textarea id="messageText" rows="3"></textarea>
+   <div class="row">
+    <div><label>Vaqt</label><input id="messageTime" value="12:30"></div>
+    <div><label>Yo‘nalish</label><select id="messageDirection"><option value="in">Kiruvchi</option><option value="out">Chiquvchi</option></select></div>
+   </div>
+   <div class="row" style="margin-top:10px">
+    <button onclick="applyMessage()">Saqlash</button>
+    <button class="secondary" onclick="deleteMessage()">O‘chirish</button>
+   </div>
+  </div>
+ </div>
+
+ <div class="panel">
+  <h2>3. Chat namunasi</h2>
+  <div id="chatPreview" class="chat">
+   <div class="demotag">DEMO · MOCKUP</div>
+   <div class="chathead">
+    <div id="chatAvatar" class="avatar">A</div>
+    <div><b id="previewName">Aziza</b><div class="online">Xayoliy chat maketi</div></div>
+   </div>
+   <div id="previewDate" class="date">BUGUN</div>
+   <div id="bubbles"></div>
+  </div>
+  <p class="small">Bu xayoliy chat dizayni. Eksport qilingan rasmda DEMO belgisi qoladi.</p>
+  <button style="width:100%;margin-top:12px" onclick="exportChat()">⬇ Chatni PNG saqlash</button>
+ </div>
+</section>
+</main>
+
+<footer>
+ <button onclick="switchTab('photo')">🖼 Surat</button>
+ <button onclick="switchTab('chat')">💬 Chat</button>
+</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+let selected = null;
+let imageUrl = null;
+let messages = [
+ {text:"Salom! Qalaysan?",time:"12:30",dir:"in"},
+ {text:"Yaxshi, rahmat!",time:"12:31",dir:"out"},
+ {text:"Bugun nima qilamiz?",time:"12:32",dir:"in"}
+];
+let selectedMessage = -1;
+
+function switchTab(tab){
+ const isPhoto = tab === "photo";
+ $("photoPanel").style.display = isPhoto ? "block" : "none";
+ $("chatPanel").style.display = isPhoto ? "none" : "block";
+ $("photoTab").className = isPhoto ? "" : "secondary";
+ $("chatTab").className = isPhoto ? "secondary" : "";
+}
+
+$("fileInput").addEventListener("change", e=>{
+ const file = e.target.files && e.target.files[0];
+ if(!file) return;
+ if(!file.type.startsWith("image/")){
+  alert("Iltimos, rasm faylini tanlang."); return;
+ }
+ if(file.size > 20*1024*1024 && !confirm("Rasm 20 MB dan katta. Telefon sekinlashishi mumkin. Davom etamizmi?")) return;
+ const url = URL.createObjectURL(file);
+ const img = new Image();
+ img.onload = ()=>{
+  if(imageUrl) URL.revokeObjectURL(imageUrl);
+  imageUrl = url;
+  $("photo").src = url;
+  $("stage").classList.remove("hidden");
+  $("empty").classList.add("hidden");
+  $("overlay").innerHTML = "";
+  selected = null;
+  $("editor").style.display = "none";
+ };
+ img.onerror = ()=>{URL.revokeObjectURL(url);alert("Rasmni ochib bo‘lmadi.");};
+ img.src = url;
+});
+
+function resetPhoto(){
+ if(imageUrl) URL.revokeObjectURL(imageUrl);
+ imageUrl=null; selected=null;
+ $("photo").removeAttribute("src");
+ $("fileInput").value="";
+ $("stage").classList.add("hidden");
+ $("empty").classList.remove("hidden");
+ $("overlay").innerHTML="";
+ $("editor").style.display="none";
+}
+
+function addText(){
+ if(!$("photo").naturalWidth){alert("Avval galereyadan surat tanlang.");return;}
+ const el=document.createElement("div");
+ el.className="textbox";
+ el.textContent="Yangi matn";
+ el.style.left="10%";el.style.top="10%";
+ el.style.fontSize="24px";el.style.color="#ffffff";
+ el.style.fontFamily="Arial";el.style.textAlign="left";
+ el.dataset.outline="0";el.dataset.shadow="1";
+ $("overlay").appendChild(el);
+ selectText(el);
+}
+
+function selectText(el){
+ if(selected) selected.classList.remove("selected");
+ selected=el;el.classList.add("selected");
+ $("editor").style.display="block";
+ $("textValue").value=el.textContent;
+ $("fontSize").value=parseInt(el.style.fontSize)||24;
+ $("fontColor").value=toHex(el.style.color)||"#ffffff";
+ $("fontFamily").value=el.style.fontFamily||"Arial";
+ $("textAlign").value=el.style.textAlign||"left";
+}
+
+function toHex(color){
+ if(!color) return "#ffffff";
+ if(color.startsWith("#")) return color;
+ const m=color.match(/\d+/g);
+ if(!m||m.length<3)return "#ffffff";
+ return "#"+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,"0")).join("");
+}
+
+$("textValue").addEventListener("input",()=>{if(selected)selected.textContent=$("textValue").value;});
+$("fontSize").addEventListener("input",()=>{if(selected)selected.style.fontSize=$("fontSize").value+"px";});
+$("fontColor").addEventListener("input",()=>{if(selected)selected.style.color=$("fontColor").value;});
+$("fontFamily").addEventListener("change",()=>{if(selected)selected.style.fontFamily=$("fontFamily").value;});
+$("textAlign").addEventListener("change",()=>{if(selected)selected.style.textAlign=$("textAlign").value;});
+
+function toggleOutline(){
+ if(!selected)return;
+ const on=selected.dataset.outline!=="1";
+ selected.dataset.outline=on?"1":"0";
+ selected.style.webkitTextStroke=on?"1px #000":"";
+}
+function toggleShadow(){
+ if(!selected)return;
+ const on=selected.dataset.shadow!=="1";
+ selected.dataset.shadow=on?"1":"0";
+ selected.style.textShadow=on?"2px 2px 3px #000":"none";
+}
+
+function deleteText(){
+ if(!selected)return;
+ selected.remove();selected=null;$("editor").style.display="none";
+}
+
+$("overlay").addEventListener("pointerdown",e=>{
+ const el=e.target.closest(".textbox");
+ if(!el)return;
+ selectText(el);
+ const rect=$("stage").getBoundingClientRect();
+ const startX=e.clientX,startY=e.clientY;
+ const origX=parseFloat(el.style.left)||0,origY=parseFloat(el.style.top)||0;
+ let moved=false;
+ el.setPointerCapture(e.pointerId);
+ const move=ev=>{
+  if(!rect.width||!rect.height)return;
+  if(Math.abs(ev.clientX-startX)+Math.abs(ev.clientY-startY)>3)moved=true;
+  if(moved){
+   el.style.left=Math.max(0,Math.min(90,origX+(ev.clientX-startX)/rect.width*100))+"%";
+   el.style.top=Math.max(0,Math.min(90,origY+(ev.clientY-startY)/rect.height*100))+"%";
+  }
+ };
+ const end=()=>{el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",end);el.removeEventListener("pointercancel",end);};
+ el.addEventListener("pointermove",move);
+ el.addEventListener("pointerup",end);
+ el.addEventListener("pointercancel",end);
+ e.preventDefault();
+});
+
+function exportPhoto(){
+ const img=$("photo");
+ if(!img.naturalWidth){alert("Avval surat tanlang.");return;}
+ try{
+  const canvas=document.createElement("canvas");
+  canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(img,0,0);
+  const r=$("stage").getBoundingClientRect();
+  if(!r.width||!r.height)throw new Error("Ish maydoni topilmadi");
+  $("overlay").querySelectorAll(".textbox").forEach(el=>{
+   const x=(parseFloat(el.style.left)||0)/100*canvas.width;
+   const y=(parseFloat(el.style.top)||0)/100*canvas.height;
+   const scale=canvas.width/r.width;
+   const size=(parseFloat(el.style.fontSize)||16)*scale;
+   const pad=5*scale;
+   ctx.font=`${size}px ${el.style.fontFamily||"Arial"}`;
+   ctx.textBaseline="top";
+   ctx.textAlign=el.style.textAlign||"left";
+   const lines=el.textContent.split("\n");
+   const lineH=size*1.25;
+   const widths=lines.map(t=>ctx.measureText(t).width);
+   const boxW=Math.max(1,...widths)+pad*2;
+   const boxH=lines.length*lineH+pad*2;
+   ctx.fillStyle="rgba(0,0,0,.42)";
+   ctx.fillRect(x,y,boxW,boxH);
+   ctx.fillStyle=el.style.color||"#fff";
+   ctx.shadowColor=el.dataset.shadow==="1"?"#000":"transparent";
+   ctx.shadowBlur=el.dataset.shadow==="1"?3*scale:0;
+   ctx.lineWidth=size/18;ctx.strokeStyle="#000";
+   lines.forEach((line,i)=>{
+    let tx=x+pad;
+    if(ctx.textAlign==="center")tx=x+boxW/2;
+    if(ctx.textAlign==="right")tx=x+boxW-pad;
+    if(el.dataset.outline==="1")ctx.strokeText(line,tx,y+pad+i*lineH);
+    ctx.fillText(line,tx,y+pad+i*lineH);
+   });
+   ctx.shadowBlur=0;
+  });
+  canvas.toBlob(blob=>{
+   if(!blob){alert("PNG yaratilmadi.");return;}
+   downloadBlob(blob,"ChatRasm-Studio.png");
+  },"image/png");
+ }catch(err){alert("Saqlashda xato yuz berdi. Boshqa surat bilan urinib ko‘ring.");}
+}
+
+function downloadBlob(blob,name){
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;a.download=name;
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
+function addMessage(dir){
+ messages.push({text:"Yangi xabar",time:"12:33",dir});
+ selectedMessage=messages.length-1;
+ renderChat();editMessage(selectedMessage);
+}
+function editMessage(i){
+ selectedMessage=i;
+ const m=messages[i];if(!m)return;
+ $("messageEditor").classList.remove("hidden");
+ $("messageText").value=m.text;
+ $("messageTime").value=m.time;
+ $("messageDirection").value=m.dir;
+ renderChat();
+}
+function applyMessage(){
+ if(selectedMessage<0||!messages[selectedMessage])return;
+ messages[selectedMessage]={
+  text:$("messageText").value.slice(0,1000),
+  time:$("messageTime").value.slice(0,30),
+  dir:$("messageDirection").value
+ };
+ renderChat();
+}
+function deleteMessage(){
+ if(selectedMessage<0)return;
+ messages.splice(selectedMessage,1);
+ selectedMessage=-1;
+ $("messageEditor").classList.add("hidden");
+ renderChat();
+}
+function renderChat(){
+ $("previewName").textContent=$("contactName").value||"Kontakt";
+ $("chatAvatar").textContent=$("avatarText").value||"?";
+ $("previewDate").textContent=$("dateText").value||"";
+ $("chatPreview").style.background=$("chatColor").value;
+ const list=$("messageList"),bubbles=$("bubbles");
+ list.innerHTML="";bubbles.innerHTML="";
+ messages.forEach((m,i)=>{
+  const item=document.createElement("div");item.className="messageItem";
+  const span=document.createElement("span");
+  span.textContent=(m.dir==="in"?"⬅ ":"➡ ")+m.text;
+  const btn=document.createElement("button");btn.textContent="Tahrir";
+  btn.onclick=()=>editMessage(i);
+  item.append(span,btn);list.appendChild(item);
+
+  const b=document.createElement("div");
+  b.className="bubble "+(m.dir==="out"?"out":"in")+(i===selectedMessage?" selected":"");
+  const body=document.createElement("div");body.textContent=m.text;
+  const meta=document.createElement("div");meta.className="meta";meta.textContent=m.time;
+  b.append(body,meta);b.onclick=()=>editMessage(i);bubbles.appendChild(b);
+ });
+}
+["contactName","avatarText","chatColor","dateText"].forEach(id=>$(id).addEventListener("input",renderChat));
+
+function exportChat(){
+ renderChat();
+ const width=720,pad=28;
+ const height=Math.max(440,190+messages.length*82);
+ const c=document.createElement("canvas");c.width=width;c.height=height;
+ const ctx=c.getContext("2d");
+ ctx.fillStyle=$("chatColor").value;ctx.fillRect(0,0,width,height);
+ ctx.fillStyle="#0b0c13";ctx.fillRect(width-190,15,160,27);
+ ctx.fillStyle="#ffffff";ctx.font="bold 13px Arial";ctx.textAlign="center";
+ ctx.fillText("DEMO · MOCKUP",width-110,33);
+ ctx.textAlign="left";
+ ctx.fillStyle="#6c75ff";ctx.beginPath();ctx.arc(pad+23,62,23,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#fff";ctx.font="bold 19px Arial";ctx.textAlign="center";
+ ctx.fillText(($("avatarText").value||"?").slice(0,3),pad+23,69);
+ ctx.textAlign="left";ctx.font="bold 21px Arial";ctx.fillStyle="#fff";
+ ctx.fillText(($("contactName").value||"Kontakt").slice(0,50),pad+60,60);
+ ctx.font="14px Arial";ctx.fillStyle="#8edcaf";ctx.fillText("Xayoliy chat maketi",pad+60,82);
+ ctx.strokeStyle="#363951";ctx.beginPath();ctx.moveTo(pad,105);ctx.lineTo(width-pad,105);ctx.stroke();
+ ctx.font="12px Arial";ctx.fillStyle="#b9bad0";ctx.textAlign="center";
+ ctx.fillText(($("dateText").value||"").slice(0,50),width/2,130);
+ let y=153;
+ messages.forEach(m=>{
+  ctx.font="17px Arial";
+  const words=m.text.split(/\s+/);const lines=[];let line="";
+  words.forEach(word=>{
+   const test=line?line+" "+word:word;
+   if(ctx.measureText(test).width>430&&line){lines.push(line);line=word;}
+   else line=test;
+  });
+  lines.push(line);
+  const boxW=Math.min(470,Math.max(110,...lines.map(t=>ctx.measureText(t).width+26)));
+  const boxH=lines.length*23+35;
+  const x=m.dir==="out"?width-pad-boxW:pad;
+  ctx.fillStyle=m.dir==="out"?"#5145a5":"#303448";
+  roundRect(ctx,x,y,boxW,boxH,15);ctx.fill();
+  ctx.fillStyle="#fff";ctx.textAlign="left";
+  lines.forEach((t,i)=>ctx.fillText(t,x+13,y+23+i*23));
+  ctx.font="11px Arial";ctx.fillStyle="#d4d5e8";ctx.textAlign="right";
+  ctx.fillText(m.time,x+boxW-10,y+boxH-9);
+  y+=boxH+13;ctx.font="17px Arial";
+ });
+ c.toBlob(blob=>{
+  if(!blob){alert("PNG yaratilmadi.");return;}
+  downloadBlob(blob,"ChatRasm-Studio-DEMO.png");
+ },"image/png");
+}
+function roundRect(ctx,x,y,w,h,r){
+ ctx.beginPath();ctx.roundRect(x,y,w,h,r);
+}
+renderChat();
+</script>
+</body>
+</html>
